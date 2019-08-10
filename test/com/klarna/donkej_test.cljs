@@ -1,4 +1,4 @@
-(ns com.klarna.donkej2-test
+(ns com.klarna.donkej-test
     (:require [cljs.test :refer-macros [deftest is testing]]))
 
 (deftest multiply-test

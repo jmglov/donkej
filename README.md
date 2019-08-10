@@ -1,4 +1,4 @@
-# donkej2
+# donkej
 
 FIXME: Write a one-line description of your library/project.
 

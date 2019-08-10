@@ -1,7 +1,7 @@
-(ns com.klarna.donkej2.views
+(ns com.klarna.donkej.views
   (:require [re-frame.core :as rf]
-            [com.klarna.donkej2.events :as events]
-            [com.klarna.donkej2.subs :as subs]))
+            [com.klarna.donkej.events :as events]
+            [com.klarna.donkej.subs :as subs]))
 
 (defn render-row [columns]
   [:tr (map (fn [column] [:td column]) columns)])

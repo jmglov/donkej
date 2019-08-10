@@ -1,5 +1,5 @@
-(ns com.klarna.donkej2.events
-  (:require [com.klarna.donkej2.db :as db]
+(ns com.klarna.donkej.events
+  (:require [com.klarna.donkej.db :as db]
             [re-frame.core :as rf]))
 
 (rf/reg-event-db

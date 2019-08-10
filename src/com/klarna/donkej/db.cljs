@@ -1,4 +1,4 @@
-(ns com.klarna.donkej2.db)
+(ns com.klarna.donkej.db)
 
 (def default-db
   {:talks []})
