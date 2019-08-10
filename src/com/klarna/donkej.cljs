@@ -15,7 +15,8 @@
   (rf/clear-subscription-cache!)
   (reagent/render [views/main-panel] (gdom/getElement "app")))
 
-(defn ^:after-load on-reload []
+(defn ^:export init []
+  (println "init called")
   (rf/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root))
