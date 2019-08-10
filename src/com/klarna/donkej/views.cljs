@@ -3,8 +3,10 @@
             [com.klarna.donkej.events :as events]
             [com.klarna.donkej.subs :as subs]))
 
+(def gen-key (partial gensym "key-"))
+
 (defn render-row [columns]
-  [:tr (map (fn [column] [:td column]) columns)])
+  [:tr {:key (gen-key)} (map (fn [column] [:td {:key column} column]) columns)])
 
 (defn grab-value! [element-id]
   (let [element (.getElementById js/document element-id)
@@ -22,8 +24,10 @@
      [:h1 "Donkej"]
      [:h2 "Submitted talks"]
      [:table
-      (render-row ["Title" "URL"])
-      (map #(render-row (map % [:title :url])) @talks)]
+      [:thead
+       (render-row ["Title" "URL"])]
+      [:tbody
+       (map #(render-row (map % [:title :url])) @talks)]]
      [:div
       [:h2 "Submit your own talk!"]
       [:input {:type "text" :placeholder "Title" :id "title-input"}]
