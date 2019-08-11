@@ -1,4 +1,5 @@
-(ns com.klarna.donkej.dynamodb)
+(ns com.klarna.donkej.dynamodb
+  (:require [clojure.set :as set]))
 
 (defn make-client []
   (new (-> js/AWS (.-DynamoDB) (.-DocumentClient))))
@@ -30,3 +31,23 @@
             (if err
               (on-error err)
               (on-success (js->clj data :keywordize-keys true)))))))
+
+(defn update!
+  ([client table key params on-success]
+   (update! client table key params on-success
+            (partial error-handler (str "Error updating item in table " table))))
+  ([client table key params on-success on-error]
+   (let [params (-> params
+                    (assoc :TableName table
+                           :Key key)
+                    (set/rename-keys {:expression :UpdateExpression
+                                      :condition :ConditionExpression
+                                      :names :ExpressionAttributeNames
+                                      :values :ExpressionAttributeValues})
+                    clj->js)]
+     (println (pr-str (js->clj params)))
+     (.update client params
+              (fn [err data]
+                (if err
+                  (on-error err)
+                  (on-success (js->clj data :keywordize-keys true))))))))

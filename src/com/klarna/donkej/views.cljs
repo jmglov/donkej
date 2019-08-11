@@ -6,6 +6,8 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]))
 
+(def username "joshua.glover")
+
 (def gen-key (partial gensym "key-"))
 
 (defn render-row [columns]
@@ -37,6 +39,7 @@
   (let [talks (rf/subscribe [::subs/talks])]
     [:div
      [:h1 "Donkej"]
+     [:p (str "Welcome, " username "!")]
      [:div {:style {:display "flex"
                     :justify-content "space-between"}}
       [:h2 "Submitted talks"]
@@ -46,13 +49,19 @@
                          (println "Refreshing")
                          (talks/load-talks!))}
        (icons/refresh 15 15)]]
-     [:table
+     [:table {:width "100%"}
       [:tbody
        (->> @talks
-            (map (fn [{:keys [id title speakers url]}]
+            (map (fn [{:keys [id title speakers url votes]}]
                    [:tr {:key id}
-                    [:td [:a {:href url :target "_blank"} title]]
-                    [:td speakers]])))]]
+                    [:td {:width "60%"} [:a {:href url :target "_blank"} title]]
+                    [:td {:width "30%"} speakers]
+                    [:td {:width "5%"
+                          :style {:cursor "pointer"}
+                          :on-click (fn [& _]
+                                      (rf/dispatch [::events/vote-for-talk id username talks/update-votes!]))}
+                     "👍"]
+                    [:td {:width "5%"} (count votes)]])))]]
      [:div
       [:h2 "Submit your own talk!"]
       [:div {:style {:display "flex"
