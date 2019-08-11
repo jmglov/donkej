@@ -25,3 +25,7 @@
   (rf/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root))
+
+(defn ^:after-load on-reload []
+  (println "Reloading")
+  (mount-root))
