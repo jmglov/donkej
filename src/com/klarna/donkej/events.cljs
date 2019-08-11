@@ -10,3 +10,8 @@
  ::add-talk
  (fn [db [_ title url]]
    (update db :talks conj {:title title, :url url})))
+
+(rf/reg-event-db
+ ::add-talks
+ (fn [db [_ talks]]
+   (update db :talks concat talks)))

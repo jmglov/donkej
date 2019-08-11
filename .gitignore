@@ -11,3 +11,6 @@ pom.xml
 .nrepl-port
 .cpcache/
 .rebel_readline_history
+
+# AWS credentials
+/src/com/klarna/donkej/creds.cljs

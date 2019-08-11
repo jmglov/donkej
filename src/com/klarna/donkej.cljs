@@ -1,6 +1,9 @@
 (ns ^:figwheel-hooks com.klarna.donkej
-  (:require [com.klarna.donkej.config :as config]
+  (:require [com.klarna.donkej.aws :as aws]
+            [com.klarna.donkej.config :as config]
+            [com.klarna.donkej.creds :refer [creds]]  ; temporary hack until we have Cognito
             [com.klarna.donkej.events :as events]
+            [com.klarna.donkej.talks :as talks]
             [com.klarna.donkej.views :as views]
             [goog.dom :as gdom]
             [reagent.core :as reagent]
@@ -17,6 +20,8 @@
 
 (defn ^:export init []
   (println "init called")
+  (aws/refresh-credentials! creds)
+  (talks/load-talks!)
   (rf/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root))
