@@ -15,6 +15,6 @@
      (update db :talks conj talk))))
 
 (rf/reg-event-db
- ::add-talks
+ ::set-talks!
  (fn [db [_ talks]]
-   (update db :talks concat talks)))
+   (assoc db :talks talks)))

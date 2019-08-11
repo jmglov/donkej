@@ -15,4 +15,4 @@
       (dynamo/scan talks-table
                    (fn [{items :Items}]
                      (println "Loaded talks:" items)
-                     (rf/dispatch [::events/add-talks items])))))
+                     (rf/dispatch [::events/set-talks! items])))))

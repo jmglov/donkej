@@ -21,8 +21,8 @@
 (defn ^:export init []
   (println "init called")
   (aws/refresh-credentials! creds)
-  (talks/load-talks!)
   (rf/dispatch-sync [::events/initialize-db])
+  (talks/load-talks!)
   (dev-setup)
   (mount-root))
 
