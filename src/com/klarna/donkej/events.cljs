@@ -8,8 +8,11 @@
 
 (rf/reg-event-db
  ::add-talk
- (fn [db [_ title url]]
-   (update db :talks conj {:title title, :url url})))
+ (fn [db [_ persist-fn title speakers url]]
+   (let [talk {:id (str (random-uuid)), :title title, :speakers speakers, :url url}]
+     (println "Adding talk:" talk)
+     (persist-fn talk)
+     (update db :talks conj talk))))
 
 (rf/reg-event-db
  ::add-talks
