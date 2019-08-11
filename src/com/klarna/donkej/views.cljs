@@ -1,5 +1,6 @@
 (ns com.klarna.donkej.views
   (:require [com.klarna.donkej.events :as events]
+            [com.klarna.donkej.icons :as icons]
             [com.klarna.donkej.subs :as subs]
             [com.klarna.donkej.talks :as talks]
             [goog.dom :as gdom]
@@ -36,7 +37,15 @@
   (let [talks (rf/subscribe [::subs/talks])]
     [:div
      [:h1 "Donkej"]
-     [:h2 "Submitted talks"]
+     [:div {:style {:display "flex"
+                    :justify-content "space-between"}}
+      [:h2 "Submitted talks"]
+      [:div {:style {:cursor "pointer"
+                     :padding "5px"}
+             :on-click (fn [_ &]
+                         (println "Refreshing")
+                         (talks/load-talks!))}
+       (icons/refresh 15 15)]]
      [:table
       [:tbody
        (->> @talks
