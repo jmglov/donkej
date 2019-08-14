@@ -1,5 +1,7 @@
 (ns com.klarna.donkej.views
-  (:require [com.klarna.donkej.events :as events]
+  (:require [com.klarna.donkej.date :as date]
+            [com.klarna.donkej.emoji :as emoji]
+            [com.klarna.donkej.events :as events]
             [com.klarna.donkej.icons :as icons]
             [com.klarna.donkej.subs :as subs]
             [com.klarna.donkej.talks :as talks]
@@ -35,40 +37,62 @@
       (rf/dispatch (vec (concat [::events/add-talk talks/add-talk!] vals)))
       (println "Will highlight missing field"))))
 
-(defn main-panel []
+(defn display-current-talks []
   (let [talks (rf/subscribe [::subs/talks])]
-    [:div
-     [:h1 "Donkej"]
-     [:p (str "Welcome, " username "!")]
-     [:div {:style {:display "flex"
-                    :justify-content "space-between"}}
-      [:h2 "Submitted talks"]
-      [:div {:style {:cursor "pointer"
-                     :padding "5px"}
-             :on-click (fn [_ &]
-                         (println "Refreshing")
-                         (talks/load-talks!))}
-       (icons/refresh 15 15)]]
-     [:table {:width "100%"}
-      [:tbody
-       (->> @talks
-            (map (fn [{:keys [id title speakers url votes]}]
-                   [:tr {:key id}
-                    [:td {:width "60%"} [:a {:href url :target "_blank"} title]]
-                    [:td {:width "30%"} speakers]
-                    [:td {:width "5%"
-                          :style {:cursor "pointer"}
-                          :on-click (fn [& _]
-                                      (rf/dispatch [::events/vote-for-talk id username talks/update-votes!]))}
-                     "👍"]
-                    [:td {:width "5%"} (count votes)]])))]]
-     [:div
-      [:h2 "Submit your own talk!"]
-      [:div {:style {:display "flex"
-                     :flex-direction "column"}}
-       (input-row "title-input" "Title" "Title")
-       (input-row "speakers-input" "Speakers" "Speaker 1, Speaker 2")
-       (input-row "url-input" "URL" "https://example.com/awesome-talk.html")
-       [:div {:style {:align-self "center"
-                      :margin-top "2px"}}
-        [:button {:on-click add-talk} "Submit"]]]]]))
+    [:table {:width "100%"}
+     [:tbody
+      (->> @talks
+           (remove :date-watched)
+           (map (fn [{:keys [id title speakers url votes]}]
+                  [:tr {:key id}
+                   [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                   [:td {:width "30%"} speakers]
+                   [:td {:width "5%"
+                         :style {:cursor "pointer"}
+                         :on-click (fn [& _]
+                                     (rf/dispatch [::events/mark-watched talks/mark-watched! id]))}
+                    emoji/eyes]
+                   [:td {:width "5%"
+                         :style {:cursor "pointer"}
+                         :on-click (fn [& _]
+                                     (rf/dispatch [::events/vote-for-talk talks/update-votes! id username ]))}
+                    emoji/thumbs-up]
+                   [:td {:width "5%"} (count votes)]])))]]))
+
+(defn display-watched-talks []
+  (let [talks (rf/subscribe [::subs/talks])]
+    [:table {:width "100%"}
+     [:tbody
+      (->> @talks
+           (filter :date-watched)
+           (map (fn [{:keys [id title speakers url date-watched]}]
+                  [:tr {:key id}
+                   [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                   [:td {:width "30%"} speakers]
+                   [:td {:width "15%"} (str (date/->iso-date date-watched) " " emoji/check-mark)]])))]]))
+
+(defn main-panel []
+  [:div
+   [:h1 "Donkej"]
+   [:p (str "Welcome, " username "!")]
+   [:div {:style {:display "flex"
+                  :justify-content "space-between"}}
+    [:h2 "Submitted talks"]
+    [:div {:style {:cursor "pointer"
+                   :padding "5px"}
+           :on-click (fn [_ &]
+                       (println "Refreshing")
+                       (talks/load-talks!))}
+     (icons/refresh 15 15)]]
+   (display-current-talks)
+   [:div
+    [:h2 "Submit your own talk!"]
+    [:div {:style {:display "flex"
+                   :flex-direction "column"}}
+     (input-row "title-input" "Title" "Title")
+     (input-row "speakers-input" "Speakers" "Speaker 1, Speaker 2")
+     (input-row "url-input" "URL" "https://example.com/awesome-talk.html")
+     [:div {:style {:align-self "center"
+                    :margin-top "2px"}}
+      [:button {:on-click add-talk} "Submit"]]]]
+   (display-watched-talks)])

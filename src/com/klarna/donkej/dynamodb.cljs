@@ -1,11 +1,27 @@
 (ns com.klarna.donkej.dynamodb
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :as set])
+  (:refer-clojure :exclude [get]))
 
 (defn make-client []
   (new (-> js/AWS (.-DynamoDB) (.-DocumentClient))))
 
 (defn error-handler [msg err]
   (println msg (js->clj err)))
+
+(defn get
+  ([client table key-name key-value on-success]
+   (get client table key-name key-value on-success
+         (partial error-handler (str "Error putting getting item from table " table))))
+  ([client table key-name key-value on-success on-error]
+   (.get client
+         (clj->js {:TableName table
+                   :Key {key-name key-value}})
+         (fn [err data]
+           (if err
+             (on-error err)
+             (on-success (-> data
+                             (js->clj :keywordize-keys true)
+                             :Item)))))))
 
 (defn put!
   ([client table item on-success]
