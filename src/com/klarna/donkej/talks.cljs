@@ -8,11 +8,13 @@
 (defn ->votes-model [votes]
   (.createSet (dynamo/make-client) (clj->js votes)))
 
-(defn ->model [talk]
-  (update talk :votes ->votes-model))
+(defn ->model [{:keys [votes] :as talk}]
+  (if (empty? votes)
+    talk
+    (update talk :votes ->votes-model)))
 
 (defn ->talk [model]
-  (update model :votes #(-> % (.-values) set)))
+  (update model :votes (fn [votes] (if votes (set (.-values votes)) #{}))))
 
 (defn add-talk! [talk]
   (println "Persisting talk to Dynamo:" (pr-str talk))
@@ -23,7 +25,7 @@
   (-> (dynamo/make-client)
       (dynamo/scan talks-table
                    (fn [{items :Items}]
-                     (println "Loaded talks:" (pr-str items))
+                     (println "Loaded talks from Dynamo:" (pr-str items))
                      (rf/dispatch [::events/set-talks! (map ->talk items)])))))
 
 (defn update-votes! [{:keys [id votes] :as talk} username]

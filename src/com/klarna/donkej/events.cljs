@@ -10,7 +10,7 @@
  ::add-talk
  (fn [db [_ persist-fn title speakers url]]
    (let [talk {:id (str (random-uuid)), :title title, :speakers speakers, :url url}]
-     (println "Adding talk:" talk)
+     (println "Adding talk to view:" (pr-str talk))
      (persist-fn talk)
      (update db :talks conj talk))))
 
