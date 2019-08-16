@@ -1,7 +1,10 @@
 (ns com.klarna.donkej.db)
 
 (def default-db
-  {:talks []})
+  {:username nil
+
+   :error-msg nil
+   :talks []})
 
 (defn find-talk
   "Returns index and talk, or nil if no talk with that ID exists"

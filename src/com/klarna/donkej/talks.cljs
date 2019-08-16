@@ -28,12 +28,13 @@
   (-> (dynamo/make-client)
       (dynamo/put! talks-table (->model talk) println)))
 
-(defn load-talks! []
+(defn load-talks []
   (-> (dynamo/make-client)
       (dynamo/scan talks-table
                    (fn [{items :Items}]
                      (println "Loaded talks from Dynamo:" (pr-str items))
-                     (rf/dispatch [::events/set-talks! (map ->talk items)])))))
+                     (rf/dispatch [::events/set-talks (map ->talk items)])
+                     (rf/dispatch [::events/clear-error-msg])))))
 
 (defn mark-watched! [{:keys [id date-watched]}]
   (-> (dynamo/make-client)

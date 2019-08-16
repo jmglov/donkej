@@ -20,9 +20,8 @@
 
 (defn ^:export init []
   (println "init called")
-  (aws/refresh-credentials! creds)
   (rf/dispatch-sync [::events/initialize-db])
-  (talks/load-talks!)
+  (rf/dispatch-sync [::events/set-error-msg "Please set your AWS credentials"])
   (dev-setup)
   (mount-root))
 

@@ -1,11 +1,32 @@
 (ns com.klarna.donkej.events
   (:require [com.klarna.donkej.date :as date]
             [com.klarna.donkej.db :as db]
-            [re-frame.core :as rf]))
+            [re-frame.core :as rf]
+            [com.klarna.donkej.aws :as aws]))
 
 (rf/reg-event-db
  ::initialize-db
  (constantly db/default-db))
+
+(rf/reg-event-db
+ ::refresh-aws-credentials!
+ (fn [_ [_ & args]]
+   (apply aws/refresh-credentials! args)))
+
+(rf/reg-event-db
+ ::set-username
+ (fn [db [_ username]]
+   (assoc db :username username)))
+
+(rf/reg-event-db
+ ::clear-error-msg
+ (fn [db [_ msg]]
+   (assoc db :error-msg nil)))
+
+(rf/reg-event-db
+ ::set-error-msg
+ (fn [db [_ msg]]
+   (assoc db :error-msg msg)))
 
 (rf/reg-event-db
  ::add-talk
@@ -30,7 +51,7 @@
        db))))
 
 (rf/reg-event-db
- ::set-talks!
+ ::set-talks
  (fn [db [_ talks]]
    (assoc db :talks (vec talks))))
 
