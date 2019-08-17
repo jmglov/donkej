@@ -42,6 +42,8 @@
      [:tbody
       (->> @talks
            (remove :date-watched)
+           (sort-by (fn [{:keys [votes]}] (count votes)))
+           reverse
            (map (fn [{:keys [id title speakers url votes]}]
                   [:tr {:key id}
                    [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
@@ -64,6 +66,8 @@
      [:tbody
       (->> @talks
            (filter :date-watched)
+           (sort-by :date-watched)
+           reverse
            (map (fn [{:keys [id title speakers url date-watched]}]
                   [:tr {:key id}
                    [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
@@ -103,4 +107,5 @@
        [:div {:style {:align-self "center"
                       :margin-top "2px"}}
         [:button {:on-click add-talk} "Submit"]]]]
+     [:h2 "Watched talks"]
      (display-watched-talks)]))
