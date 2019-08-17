@@ -1,8 +1,8 @@
-(ns com.klarna.donkej.events
-  (:require [com.klarna.donkej.date :as date]
-            [com.klarna.donkej.db :as db]
+(ns donkej.events
+  (:require [donkej.date :as date]
+            [donkej.db :as db]
             [re-frame.core :as rf]
-            [com.klarna.donkej.aws :as aws]))
+            [donkej.aws :as aws]))
 
 (rf/reg-event-db
  ::initialize-db

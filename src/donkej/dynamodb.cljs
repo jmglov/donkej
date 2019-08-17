@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.dynamodb
+(ns donkej.dynamodb
   (:require [clojure.set :as set])
   (:refer-clojure :exclude [get]))
 

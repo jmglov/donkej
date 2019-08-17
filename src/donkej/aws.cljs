@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.aws)
+(ns donkej.aws)
 
 (def default-region "eu-west-1")
 

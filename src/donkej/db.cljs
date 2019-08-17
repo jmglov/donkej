@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.db)
+(ns donkej.db)
 
 (def default-db
   {:username nil

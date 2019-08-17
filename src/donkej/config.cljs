@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.config)
+(ns donkej.config)
 
 (def debug?
   ^boolean goog.DEBUG)

@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.icons)
+(ns donkej.icons)
 
 (defn refresh [width height]
   [:img {:src (str "data:image/png;base64,"

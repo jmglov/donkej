@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.date
+(ns donkej.date
   (:require [clojure.string :as string]))
 
 (defn ->date [date]

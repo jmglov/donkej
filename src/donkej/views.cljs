@@ -1,10 +1,10 @@
-(ns com.klarna.donkej.views
-  (:require [com.klarna.donkej.date :as date]
-            [com.klarna.donkej.emoji :as emoji]
-            [com.klarna.donkej.events :as events]
-            [com.klarna.donkej.icons :as icons]
-            [com.klarna.donkej.subs :as subs]
-            [com.klarna.donkej.talks :as talks]
+(ns donkej.views
+  (:require [donkej.date :as date]
+            [donkej.emoji :as emoji]
+            [donkej.events :as events]
+            [donkej.icons :as icons]
+            [donkej.subs :as subs]
+            [donkej.talks :as talks]
             [goog.dom :as gdom]
             [re-frame.core :as rf]))
 

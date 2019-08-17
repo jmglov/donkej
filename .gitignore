@@ -13,4 +13,4 @@ pom.xml
 .rebel_readline_history
 
 # AWS credentials
-/src/com/klarna/donkej/creds.cljs
+/src/donkej/creds.cljs

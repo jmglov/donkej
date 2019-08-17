@@ -1,4 +1,4 @@
-(ns com.klarna.donkej.emoji)
+(ns donkej.emoji)
 
 (def check-mark "✔️")
 (def eyes "👀")

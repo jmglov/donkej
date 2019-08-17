@@ -1,7 +1,7 @@
-(ns com.klarna.donkej.talks
-  (:require [com.klarna.donkej.dynamodb :as dynamo]
-            [com.klarna.donkej.date :as date]
-            [com.klarna.donkej.events :as events]
+(ns donkej.talks
+  (:require [donkej.dynamodb :as dynamo]
+            [donkej.date :as date]
+            [donkej.events :as events]
             [re-frame.core :as rf]))
 
 (def talks-table "hsi-tools-donkej-talks")
