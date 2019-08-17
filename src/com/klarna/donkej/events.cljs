@@ -51,8 +51,15 @@
        db))))
 
 (rf/reg-event-db
+ ::get-talks
+ (fn [{:keys [talks] :as db} [_ a]]
+   (reset! a talks)
+   db))
+
+(rf/reg-event-db
  ::set-talks
  (fn [db [_ talks]]
+   (println "Set talks to" (pr-str talks))
    (assoc db :talks (vec talks))))
 
 (rf/reg-event-db
