@@ -8,10 +8,12 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]))
 
-(def gen-key (partial gensym "key-"))
+(defn gen-key [prefix]
+  (gensym (str "key-" prefix)))
 
-(defn render-row [columns]
-  [:tr {:key (gen-key)} (map (fn [column] [:td {:key column} column]) columns)])
+(defn table-header [labels]
+  [:thead
+   [:tr (map (fn [label] [:th {:key (gen-key label)} label]) labels)]])
 
 (defn input-row [id label placeholder]
   [:div {:style {:display "flex"
@@ -38,41 +40,75 @@
 (defn display-current-talks []
   (let [talks (rf/subscribe [::subs/talks])
         username (rf/subscribe [::subs/username])]
-    [:table {:width "100%"}
-     [:tbody
-      (->> @talks
-           (remove :date-watched)
-           (sort-by (fn [{:keys [votes]}] (count votes)))
-           reverse
-           (map (fn [{:keys [id title speakers url votes]}]
-                  [:tr {:key id}
-                   [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
-                   [:td {:width "30%"} speakers]
-                   [:td {:width "5%"
-                         :style {:cursor "pointer"}
-                         :on-click (fn [& _]
-                                     (rf/dispatch [::events/mark-watched talks/mark-watched! id]))}
-                    emoji/eyes]
-                   [:td {:width "5%"
-                         :style {:cursor "pointer"}
-                         :on-click (fn [& _]
-                                     (rf/dispatch [::events/vote-for-talk talks/update-votes! id @username]))}
-                    emoji/thumbs-up]
-                   [:td {:width "5%"} (count votes)]])))]]))
+    [:div
+     [:h2 "This week"]
+     [:div {:style {:display "flex"
+                    :justify-content "flex-end"
+                    :width "100%"}}
+      [:div {:style {:cursor "pointer"
+                     :padding "5px"}
+             :on-click (fn [_ &]
+                         (println "Refreshing")
+                         (talks/load-talks))}
+       (icons/refresh 15 15)]]
+     [:table {:width "100%"}
+      (table-header ["Title" "Speakers" "" "" "Votes"])
+      [:tbody
+       (->> @talks
+            (remove :date-watched)
+            (sort-by (fn [{:keys [votes]}] (count votes)))
+            reverse
+            (map (fn [{:keys [id title speakers url votes]}]
+                   [:tr {:key id}
+                    [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                    [:td {:width "30%"} speakers]
+                    [:td {:width "5%"
+                          :style {:cursor "pointer"}
+                          :on-click (fn [& _]
+                                      (rf/dispatch [::events/mark-watched talks/mark-watched! id]))}
+                     emoji/eyes]
+                    [:td {:width "5%"
+                          :style {:cursor "pointer"}
+                          :on-click (fn [& _]
+                                      (rf/dispatch [::events/vote-for-talk talks/update-votes! id @username]))}
+                     emoji/thumbs-up]
+                    [:td {:width "5%"} (count votes)]])))]]]))
 
 (defn display-watched-talks []
   (let [talks (rf/subscribe [::subs/talks])]
-    [:table {:width "100%"}
-     [:tbody
-      (->> @talks
-           (filter :date-watched)
-           (sort-by :date-watched)
-           reverse
-           (map (fn [{:keys [id title speakers url date-watched]}]
-                  [:tr {:key id}
-                   [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
-                   [:td {:width "30%"} speakers]
-                   [:td {:width "15%"} (str (date/->iso-date date-watched) " " emoji/check-mark)]])))]]))
+    [:div
+     [:h2 "Watched talks"]
+     [:table {:width "100%"}
+      (table-header ["Title" "Speakers" "Date Watched"])
+      [:tbody
+       (->> @talks
+            (filter :date-watched)
+            (sort-by :date-watched)
+            reverse
+            (map (fn [{:keys [id title speakers url date-watched]}]
+                   [:tr {:key id}
+                    [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                    [:td {:width "30%"} speakers]
+                    [:td {:width "15%"} (str (date/->iso-date date-watched) " " emoji/check-mark)]])))]]]))
+
+(defn display-backlog []
+  (let [talks (rf/subscribe [::subs/talks])
+        backlog (->> @talks
+                     (filter :in-backlog?)
+                     (sort-by :date-submitted)
+                     reverse
+                     (map (fn [{:keys [id title speakers url date-submitted]}]
+                            [:tr {:key id}
+                             [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                             [:td {:width "30%"} speakers]
+                             [:td {:width "15%"} (str (date/->iso-date date-submitted))]])))]
+    (when-not (empty? backlog)
+      [:div
+       [:h2 "Backlog"]
+       [:table {:width "100%"}
+        (table-header ["Title" "Speakers" "Date Submitted"])
+        [:tbody
+         backlog]]])))
 
 (defn main-panel []
   (let [error-msg (rf/subscribe [::subs/error-msg])
@@ -87,15 +123,6 @@
                      :outline-style "auto"
                      :padding "2px"}}
          @error-msg]])
-     [:div {:style {:display "flex"
-                    :justify-content "space-between"}}
-      [:h2 "Submitted talks"]
-      [:div {:style {:cursor "pointer"
-                     :padding "5px"}
-             :on-click (fn [_ &]
-                         (println "Refreshing")
-                         (talks/load-talks))}
-       (icons/refresh 15 15)]]
      (display-current-talks)
      [:div
       [:h2 "Submit your own talk!"]
@@ -107,5 +134,5 @@
        [:div {:style {:align-self "center"
                       :margin-top "2px"}}
         [:button {:on-click add-talk} "Submit"]]]]
-     [:h2 "Watched talks"]
-     (display-watched-talks)]))
+     (display-watched-talks)
+     (display-backlog)]))
