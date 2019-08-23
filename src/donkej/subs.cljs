@@ -5,3 +5,4 @@
 
 (rf/reg-sub ::error-msg :error-msg)
 (rf/reg-sub ::talks :talks)
+(rf/reg-sub ::editing :editing)

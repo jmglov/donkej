@@ -7,8 +7,10 @@
 ;; crappy tool
 (rf/reg-event-db
  ::print-db
- (fn [db & _]
-   (println "Current db:" (pr-str db))
+ (fn [db [_ key]]
+   (if key
+     (println "Current" key ":" (pr-str (get db key)))
+     (println "Current db:" (pr-str db)))
    db))
 
 (rf/reg-event-db
@@ -83,3 +85,9 @@
          (persist-fn talk username)
          (assoc-in db [:talks i] talk*))
        db))))
+
+(rf/reg-event-db
+ ::edit-talk
+ (fn [db [_ id]]
+   (let [[_ talk] (db/find-talk db id)]
+     (assoc db :editing talk))))

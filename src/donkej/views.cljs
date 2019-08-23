@@ -52,13 +52,13 @@
                          (talks/load-talks))}
        (icons/refresh 15 15)]]
      [:table {:width "100%"}
-      (table-header ["Title" "Speakers" "" "" "Votes"])
+      (table-header ["Title" "Speakers" "" "" "" "Votes"])
       [:tbody
        (->> @talks
             (remove :date-watched)
             (sort-by (fn [{:keys [votes]}] (count votes)))
             reverse
-            (map (fn [{:keys [id title speakers url votes]}]
+            (map (fn [{:keys [id title speakers url votes submitted-by]}]
                    [:tr {:key id}
                     [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
                     [:td {:width "30%"} speakers]
@@ -72,6 +72,9 @@
                           :on-click (fn [& _]
                                       (rf/dispatch [::events/vote-for-talk talks/update-votes! id @username]))}
                      emoji/thumbs-up]
+                    [:td {:width "5%"}
+                     (when (= @username submitted-by)
+                       [:button {:on-click (fn [& _] (rf/dispatch [::events/edit-talk id]))} "Edit"])]
                     [:td {:width "5%"} (count votes)]])))]]]))
 
 (defn display-watched-talks []
@@ -111,7 +114,8 @@
          backlog]]])))
 
 (defn main-panel []
-  (let [error-msg (rf/subscribe [::subs/error-msg])
+  (let [editing (rf/subscribe [::subs/editing])
+        error-msg (rf/subscribe [::subs/error-msg])
         username (rf/subscribe [::subs/username])]
     [:div
      [:h1 "Donkej"]
@@ -125,7 +129,9 @@
          @error-msg]])
      (display-current-talks)
      [:div
-      [:h2 "Submit your own talk!"]
+      (if (map? @editing)
+        [:h2 "Edit your own talk!"]
+        [:h2 "Submit your own talk!"])
       [:div {:style {:display "flex"
                      :flex-direction "column"}}
        (input-row "title-input" "Title" "Title")
