@@ -1,7 +1,6 @@
 (ns ^:figwheel-hooks donkej.core
   (:require [donkej.aws :as aws]
             [donkej.config :as config]
-            [donkej.creds :refer [creds]]  ; temporary hack until we have Cognito
             [donkej.events :as events]
             [donkej.talks :as talks]
             [donkej.views :as views]
