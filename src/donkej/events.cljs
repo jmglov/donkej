@@ -4,14 +4,22 @@
             [re-frame.core :as rf]
             [donkej.aws :as aws]))
 
+;; crappy tool
+(rf/reg-event-db
+ ::print-db
+ (fn [db & _]
+   (println "Current db:" (pr-str db))
+   db))
+
 (rf/reg-event-db
  ::initialize-db
  (constantly db/default-db))
 
 (rf/reg-event-db
  ::refresh-aws-credentials!
- (fn [_ [_ & args]]
-   (apply aws/refresh-credentials! args)))
+ (fn [db [_ & args]]
+   (apply aws/refresh-credentials! args)
+   db))
 
 (rf/reg-event-db
  ::set-username
@@ -30,15 +38,18 @@
 
 (rf/reg-event-db
  ::add-talk
- (fn [db [_ persist-fn title speakers url]]
-   (let [talk {:id (str (random-uuid))
-               :title title
-               :speakers speakers
-               :url url
-               :date-submitted (date/now-iso-datetime)}]
-     (println "Adding talk to view:" (pr-str talk))
-     (persist-fn talk)
-     (update db :talks conj talk))))
+ (fn [{:keys [username] :as db} [_ persist-fn title speakers url]]
+   (if username
+     (let [talk {:id (str (random-uuid))
+                 :title title
+                 :speakers speakers
+                 :submitted-by username
+                 :url url
+                 :date-submitted (date/now-iso-datetime)}]
+       (println "Adding talk to view:" (pr-str talk))
+       (persist-fn talk)
+       (update db :talks conj talk))
+     (assoc db :error-msg "You have to set your username!"))))
 
 (rf/reg-event-db
  ::mark-watched
