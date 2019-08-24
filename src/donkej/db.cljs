@@ -4,6 +4,9 @@
   {:username nil
 
    :error-msg nil
+
+   :editing-talk {}
+
    :talks []})
 
 (defn find-talk

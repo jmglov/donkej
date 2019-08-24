@@ -45,6 +45,21 @@
                       (fn [_ &]
                         (println "Marked talk as watched at" date-watched)))))
 
+(defn update-talk! [{:keys [id title speakers url]}]
+  (let [params {:expression "SET #title = :title, #speakers = :speakers, #url = :url"
+                :names {"#title" "title"
+                        "#speakers" "speakers"
+                        "#url" "url"}
+                :values {":title" title
+                         ":speakers" speakers
+                         ":url" url}}]
+    (println "Dynamo params:" (pr-str params))
+    (-> (dynamo/make-client)
+        (dynamo/update! talks-table {:id id} params
+                        (fn [_ &]
+                          (println "Updated talk in database"))
+                        #(rf/dispatch [::events/set-error-msg %])))))
+
 (defn update-votes! [{:keys [id votes] :as talk} username]
   (println "Updating vote for" username "on talk" id)
   (println "Old votes:" votes)

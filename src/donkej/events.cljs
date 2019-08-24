@@ -1,8 +1,9 @@
 (ns donkej.events
-  (:require [donkej.date :as date]
+  (:require [clojure.string :as string]
+            [donkej.aws :as aws]
+            [donkej.date :as date]
             [donkej.db :as db]
-            [re-frame.core :as rf]
-            [donkej.aws :as aws]))
+            [re-frame.core :as rf]))
 
 ;; crappy tool
 (rf/reg-event-db
@@ -40,18 +41,40 @@
 
 (rf/reg-event-db
  ::add-talk
- (fn [{:keys [username] :as db} [_ persist-fn title speakers url]]
+ (fn [{:keys [editing-talk username] :as db} [_ persist-fn]]
    (if username
-     (let [talk {:id (str (random-uuid))
-                 :title title
-                 :speakers speakers
-                 :submitted-by username
-                 :url url
-                 :date-submitted (date/now-iso-datetime)}]
-       (println "Adding talk to view:" (pr-str talk))
-       (persist-fn talk)
-       (update db :talks conj talk))
+     (let [talk (merge editing-talk
+                       {:id (str (random-uuid))
+                        :submitted-by username
+                        :date-submitted (date/now-iso-datetime)})
+           missing-fields (filter #(empty? (editing-talk %)) [:title :speakers :url])]
+       (if (empty? missing-fields)
+         (do
+           (println "Adding talk to view:" (pr-str talk))
+           (persist-fn talk)
+           (-> db
+               (update :talks conj talk)
+               (dissoc :editing-talk)
+               (dissoc :error-msg)))
+         (assoc db :error-msg (str "Talk is incomplete; missing "
+                                   (string/join ", " (map name missing-fields))))))
      (assoc db :error-msg "You have to set your username!"))))
+
+(rf/reg-event-db
+ ::cancel-editing
+ (fn [db [_]]
+   (dissoc db :editing-talk)))
+
+(rf/reg-event-db
+ ::edit-talk
+ (fn [db [_ id]]
+   (let [[_ talk] (db/find-talk db id)]
+     (assoc db :editing-talk talk))))
+
+(rf/reg-event-db
+ ::edit-field
+ (fn [db [_ field value]]
+   (assoc-in db [:editing-talk field] value)))
 
 (rf/reg-event-db
  ::mark-watched
@@ -76,6 +99,22 @@
    (assoc db :talks (vec talks))))
 
 (rf/reg-event-db
+ ::update-talk
+ (fn [{:keys [editing-talk] :as db} [_ persist-fn]]
+   (let [missing-fields (filter #(empty? (editing-talk %)) [:title :speakers :url])
+         [i _] (db/find-talk db (:id editing-talk))]
+     (if (empty? missing-fields)
+       (do
+         (println "Updating talk:" (pr-str editing-talk))
+         (persist-fn editing-talk)
+         (-> db
+             (assoc-in [:talks i] editing-talk)
+             (dissoc :editing-talk)
+             (dissoc :error-msg)))
+       (assoc db :error-msg (str "Talk is incomplete; missing "
+                                 (string/join ", " (map name missing-fields))))))))
+
+(rf/reg-event-db
  ::vote-for-talk
  (fn [db [_ persist-fn id username]]
    (let [[i talk] (db/find-talk db id)]
@@ -85,9 +124,3 @@
          (persist-fn talk username)
          (assoc-in db [:talks i] talk*))
        db))))
-
-(rf/reg-event-db
- ::edit-talk
- (fn [db [_ id]]
-   (let [[_ talk] (db/find-talk db id)]
-     (assoc db :editing talk))))
