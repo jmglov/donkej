@@ -46,7 +46,7 @@
      (let [talk (merge editing-talk
                        {:id (str (random-uuid))
                         :submitted-by username
-                        :date-submitted (date/now-iso-datetime)})
+                        :date-submitted (date/now)})
            missing-fields (filter #(empty? (editing-talk %)) [:title :speakers :url])]
        (if (empty? missing-fields)
          (do
@@ -81,7 +81,7 @@
  (fn [db [_ persist-fn id]]
    (let [[i talk] (db/find-talk db id)]
      (if i
-       (let [talk* (assoc talk :date-watched (date/now-iso-datetime))]
+       (let [talk* (assoc talk :date-watched (date/now))]
          (persist-fn talk*)
          (assoc-in db [:talks i] talk*))
        db))))

@@ -41,7 +41,7 @@
       (dynamo/update! talks-table {:id id} {:expression "SET #date_watched = :date"
                                             :condition "attribute_not_exists(#date_watched)"
                                             :names {"#date_watched" "date-watched"}
-                                            :values {":date" date-watched}}
+                                            :values {":date" (date/->iso-datetime date-watched)}}
                       (fn [_ &]
                         (println "Marked talk as watched at" date-watched)))))
 
