@@ -23,6 +23,13 @@
       (update :date-watched date/->date)
       (update :votes (fn [votes] (if votes (set (.-values votes)) #{})))))
 
+(def candidate? :candidate?)
+
+(defn submission? [{:keys [candidate? date-watched]}]
+  (and (not candidate?) (not date-watched)))
+
+(def watched? :date-watched)
+
 (defn add-talk! [talk]
   (println "Persisting talk to Dynamo:" (pr-str talk))
   (-> (dynamo/make-client)
@@ -44,6 +51,9 @@
                                             :values {":date" (date/->iso-datetime date-watched)}}
                       (fn [_ &]
                         (println "Marked talk as watched at" date-watched)))))
+
+(defn select-candidate! [{:keys [id date-selected]}]
+  (println "Selecting candidate talk" id "at" date-selected))
 
 (defn update-talk! [{:keys [id title speakers url]}]
   (let [params {:expression "SET #title = :title, #speakers = :speakers, #url = :url"

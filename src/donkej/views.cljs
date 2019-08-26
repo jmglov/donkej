@@ -27,6 +27,11 @@
               :placeholder placeholder
               :on-change #(rf/dispatch [::events/edit-field field (-> % .-target .-value)])}]]))
 
+(defn clickable-emoji [emoji on-click-fn]
+  [:span {:style {:cursor "pointer"}
+          :on-click on-click-fn}
+   emoji])
+
 (defn talk-editor []
   (let [{:keys [id title speakers url]} @(rf/subscribe [::subs/editing-talk])]
     [:div
@@ -46,11 +51,11 @@
            [:button {:on-click #(rf/dispatch [::events/cancel-editing])} "Cancel"]]
           [:button {:on-click #(rf/dispatch [::events/add-talk talks/add-talk!])} "Submit"])]]]))
 
-(defn display-current-talks []
-  (let [talks (rf/subscribe [::subs/talks])
+(defn display-candidates []
+  (let [talks (filter talks/candidate? @(rf/subscribe [::subs/talks]))
         username (rf/subscribe [::subs/username])]
     [:div
-     [:h2 "This week"]
+     [:h2 "Candidates for this week"]
      [:div {:style {:display "flex"
                     :justify-content "flex-end"
                     :width "100%"}}
@@ -63,8 +68,7 @@
      [:table {:width "100%"}
       (table-header ["Title" "Speakers" "" "" "" "Votes"])
       [:tbody
-       (->> @talks
-            (remove :date-watched)
+       (->> talks
             (sort-by (fn [{:keys [votes]}] (count votes)))
             reverse
             (map (fn [{:keys [id title speakers url votes submitted-by]}]
@@ -76,22 +80,14 @@
                      [:div {:style {:display "flex"
                                     :justify-content "flex-end"}}
                       (when (= @username submitted-by)
-                        [:span {:style {:cursor "pointer"
-                                        :margin-right "10px"}
-                                :on-click (fn [& _]
-                                            (rf/dispatch [::events/edit-talk id]))}
-                         emoji/pencil])
-                      [:span {:style {:cursor "pointer"}
-                              :on-click (fn [& _]
-                                          (rf/dispatch [::events/mark-watched talks/mark-watched! id]))}
-                       emoji/eyes]]]
+                        [clickable-emoji emoji/pencil #(rf/dispatch [::events/edit-talk id])])
+                      [clickable-emoji emoji/eyes
+                       #(rf/dispatch [::events/mark-watched talks/mark-watched! id])]]]
                     [:td {:width "5%"}
                      [:div {:style {:display "flex"
                                     :justify-content "flex-end"}}
-                      [:span {:style {:cursor "pointer"}
-                              :on-click (fn [& _]
-                                          (rf/dispatch [::events/vote-for-talk talks/update-votes! id @username]))}
-                       emoji/thumbs-up]]]
+                      [clickable-emoji emoji/thumbs-up
+                       #(rf/dispatch [::events/vote-for-talk talks/update-votes! id @username])]]]
                     [:td {:width "5%"}
                      [:div {:style {:display "flex"
                                     :justify-content "flex-end"}}
@@ -99,7 +95,7 @@
             doall)]]]))
 
 (defn display-watched-talks []
-  (let [watched-talks (filter :date-watched @(rf/subscribe [::subs/talks]))]
+  (let [watched-talks (filter talks/watched? @(rf/subscribe [::subs/talks]))]
     [:div
      [:h2 "Watched talks"]
      [:table {:width "100%"}
@@ -112,7 +108,26 @@
                    [:tr {:key id}
                     [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
                     [:td {:width "30%"} speakers]
-                    [:td {:width "15%"} (str (date/->iso-date date-watched) " " emoji/check-mark)]])))]]]))
+                    [:td {:width "15%"} (date/->iso-date date-watched)]])))]]]))
+
+(defn display-submissions []
+  (let [submitted-talks (filter talks/submission? @(rf/subscribe [::subs/talks]))]
+    [:div
+     [:h2 "Submitted talks"]
+     [:table {:width "100%"}
+      (table-header ["Title" "Speakers" "" "Date submitted"])
+      [:tbody
+       (->> submitted-talks
+            (sort-by :date-submitted)
+            reverse
+            (map (fn [{:keys [id title speakers url date-submitted]}]
+                   [:tr {:key id}
+                    [:td {:width "55%"} [:a {:href url :target "_blank"} title]]
+                    [:td {:width "30%"} speakers]
+                    [:td {:width "5%"}
+                     [clickable-emoji emoji/up-arrow
+                      #(rf/dispatch [::events/select-candidate talks/select-candidate! id])]]
+                    [:td {:width "10%"} (date/->iso-date date-submitted)]])))]]]))
 
 (defn main-panel []
   (let [error-msg @(rf/subscribe [::subs/error-msg])
@@ -127,6 +142,7 @@
                      :outline-style "auto"
                      :padding "2px"}}
          error-msg]])
-     [display-current-talks]
+     [display-candidates]
      [talk-editor]
+     [display-submissions]
      [display-watched-talks]]))

@@ -4,3 +4,4 @@
 (def eyes "👀")
 (def pencil "✏️")
 (def thumbs-up "👍")
+(def up-arrow "^")

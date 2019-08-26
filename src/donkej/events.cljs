@@ -93,6 +93,18 @@
    db))
 
 (rf/reg-event-db
+ ::select-candidate
+ (fn [db [_ persist-fn id username]]
+   (let [[i talk] (db/find-talk db id)]
+     (if i
+       (let [talk* (merge talk {:candidate? true
+                                :date-selected (date/now)
+                                :selected-by username})]
+         (persist-fn talk)
+         (assoc-in db [:talks i] talk*))
+       db))))
+
+(rf/reg-event-db
  ::set-talks
  (fn [db [_ talks]]
    (println "Set talks to" (pr-str talks))
